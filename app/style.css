@@ -1,5 +1,6 @@
-/* Pricedown is the GTA display font for caption lettering, vendored in
-   app/fonts/; the heavy system stack is the fallback. */
+/* Vice Cover Studio styles. Pricedown is the GTA display font for caption
+   lettering, vendored in app/fonts/; the heavy system stack is the
+   fallback when it has not loaded yet. */
 @font-face {
   font-family: 'Pricedown';
   src: url('./fonts/Pricedown.otf') format('opentype');
@@ -8,144 +9,165 @@
   font-display: swap;
 }
 
-/* Base */
+/* Base page */
 * { box-sizing: border-box; }
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  margin: 0;
   background: #12081d;
   color: #f5eefc;
-  margin: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
-/* Page chrome: the gradient top bar and the footer line. */
+/* Gradient top bar with the brand and tagline, plus the footer line. */
 .topbar {
-  background: linear-gradient(90deg, #ff5e7a, #b13a8f 55%, #00c2d8);
   display: flex;
   align-items: baseline;
-  gap: 18px;
   flex-wrap: wrap;
+  gap: 18px;
   padding: 14px 22px;
+  background: linear-gradient(90deg, #ff5e7a, #b13a8f 55%, #00c2d8);
 }
 .brand {
+  color: #fff;
   font-family: 'Pricedown', 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
   font-size: 30px;
   font-weight: 900;
   letter-spacing: 2px;
-  color: #fff;
   text-shadow: 3px 3px 0 #14081f;
 }
 .brand-mark {
+  margin-right: 8px;
+  padding: 2px 8px;
   background: #14081f;
   color: #ffb347;
-  padding: 2px 8px;
-  margin-right: 8px;
 }
-.tagline { margin: 0; color: #ffe9f2; font-size: 14px; }
-.foot { text-align: center; color: #8d76a6; font-size: 12px; padding: 0 20px 18px; }
+.tagline { margin: 0; font-size: 14px; color: #ffe9f2; }
+.foot { padding: 0 20px 18px; text-align: center; font-size: 12px; color: #8d76a6; }
 
-/* Layout: controls on the left, live preview on the right. */
+/* Two columns: controls on the left, live preview on the right. */
 .app {
   display: grid;
   grid-template-columns: 340px 1fr;
   gap: 20px;
-  padding: 20px 22px;
   max-width: 1400px;
   margin: 0 auto;
+  padding: 20px 22px;
 }
-.preview { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.preview-hint { margin: 0; font-size: 13px; color: #b9a3cc; }
 #cover {
-  max-width: 100%;
-  max-height: calc(100vh - 190px);
   width: auto;
   height: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 190px);
   border-radius: 6px;
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
   cursor: grab;
   touch-action: none;
 }
 #cover:active { cursor: grabbing; }
-.preview-hint { font-size: 13px; color: #b9a3cc; margin: 0; }
 
-/* The controls panel. */
+/* Controls panel */
 .controls {
+  padding: 16px;
   background: #1e1030;
   border: 1px solid #4a2a66;
   border-radius: 12px;
-  padding: 16px;
 }
 .controls h2 {
+  margin: 18px 0 8px;
+  color: #ffb347;
   font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
   font-size: 17px;
   font-weight: 900;
   letter-spacing: 1.5px;
-  color: #ffb347;
-  margin: 18px 0 8px;
 }
 .controls h2:first-child { margin-top: 0; }
-label { display: block; font-size: 13px; margin: 8px 0; color: #d9c8ea; }
+label { display: block; margin: 8px 0; font-size: 13px; color: #d9c8ea; }
 label input[type="text"], label select {
   width: 100%;
   margin-top: 4px;
   padding: 9px 10px;
-  border-radius: 8px;
-  border: 1px solid #6b4a8c;
   background: #2a1840;
+  border: 1px solid #6b4a8c;
+  border-radius: 8px;
   color: #fff;
   font-size: 15px;
 }
 label input[type="range"] { width: 100%; accent-color: #ff5e7a; }
-label input[type="color"] { width: 100%; height: 36px; padding: 2px; background: #2a1840; border: 1px solid #6b4a8c; border-radius: 8px; }
+label input[type="color"] {
+  width: 100%;
+  height: 36px;
+  padding: 2px;
+  background: #2a1840;
+  border: 1px solid #6b4a8c;
+  border-radius: 8px;
+}
 .check { display: flex; align-items: center; gap: 8px; }
-.check input { accent-color: #ff5e7a; width: 17px; height: 17px; }
+.check input { width: 17px; height: 17px; accent-color: #ff5e7a; }
 
 /* Buttons, chips and tabs share one look; .active marks the selection. */
 .file-label {
   display: block;
-  text-align: center;
+  padding: 12px;
   background: linear-gradient(90deg, #ff5e7a, #ff9a3d);
+  border-radius: 9px;
   color: #fff;
   font-weight: 700;
-  padding: 12px;
-  border-radius: 9px;
+  text-align: center;
   cursor: pointer;
 }
 .file-label input { display: none; }
-.sample-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-.layout-row, .grade-row, .size-row, .panel-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.sample-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.layout-row, .grade-row, .size-row, .panel-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip, .layout-btn, .grade-btn, .size-btn, .panel-tab {
+  padding: 8px 10px;
   background: #2a1840;
-  color: #f5eefc;
   border: 1px solid #6b4a8c;
   border-radius: 8px;
-  padding: 8px 10px;
+  color: #f5eefc;
   font-size: 13px;
   cursor: pointer;
 }
 .chip:hover, .layout-btn:hover, .grade-btn:hover, .size-btn:hover, .panel-tab:hover { border-color: #ff5e7a; }
 .active { background: #ff5e7a; border-color: #ff5e7a; color: #fff; font-weight: 700; }
-.hint { font-size: 12px; color: #b9a3cc; margin: 6px 0; }
+.hint { margin: 6px 0; font-size: 12px; color: #b9a3cc; }
 .export-btn {
   width: 100%;
   margin-top: 12px;
   padding: 14px;
+  background: linear-gradient(90deg, #ffb347, #ff5e7a);
+  border: none;
+  border-radius: 10px;
+  color: #14081f;
   font-family: 'Pricedown', 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
   font-size: 20px;
   font-weight: 900;
   letter-spacing: 2px;
-  color: #14081f;
-  background: linear-gradient(90deg, #ffb347, #ff5e7a);
-  border: none;
-  border-radius: 10px;
   cursor: pointer;
 }
 .export-btn:hover { filter: brightness(1.1); }
-#status { font-size: 13px; color: #b9a3cc; min-height: 18px; }
+#status { min-height: 18px; font-size: 13px; color: #b9a3cc; }
 
-/* Screenshot mode (?shot=cover): hide the chrome, the canvas fills the
-   viewport so the screenshot is the exported cover alone. */
+/* Screenshot mode (?shot=cover): hide the chrome so the canvas fills the
+   viewport and the screenshot is the exported cover alone. */
 body.shot-cover .topbar, body.shot-cover .controls, body.shot-cover .foot, body.shot-cover .preview-hint { display: none; }
-body.shot-cover .app { display: block; padding: 0; margin: 0; max-width: none; }
-body.shot-cover #cover { max-height: none; max-width: none; width: 100vw; height: 100vh; object-fit: contain; border-radius: 0; box-shadow: none; background: #160a24; }
+body.shot-cover .app { display: block; max-width: none; margin: 0; padding: 0; }
+body.shot-cover #cover {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+  border-radius: 0;
+  box-shadow: none;
+  background: #160a24;
+}
 
 /* Narrow screens: stack the controls above the preview. */
 @media (max-width: 900px) {
