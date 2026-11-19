@@ -3,21 +3,95 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cover Snap</title>
+<meta name="description" content="Vice Cover Studio — turn your photos and a caption into a multi-panel GTA-style poster cover, exported as a PNG. Runs offline; photos never leave your machine.">
+<title>Vice Cover Studio — GTA-style cover art maker</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">VCS</span> VICE COVER STUDIO</div>
+  <p class="tagline">Your photos. Your caption. A Vice City poster in one click.</p>
+</header>
 <main class="app">
-  <section class="controls">
-    <h1>Cover Snap</h1>
-    <p>A photo and a caption, made into a square cover.</p>
-    <label>Photo <input id="photo" type="file" accept="image/*"></label>
-    <label>Caption <input id="caption" type="text" maxlength="40" value="Sunset Heist"></label>
-    <button id="export" type="button">Export PNG 1080 x 1080</button>
-    <p id="status" role="status"></p>
+  <section class="controls" aria-label="Cover controls">
+    <h2>1 · Photos</h2>
+    <label class="file-label">Add photos
+      <input id="photoInput" type="file" accept="image/*" multiple>
+    </label>
+    <div class="sample-row">
+      <button type="button" class="chip" data-sample="boulevard">Sample: Boulevard</button>
+      <button type="button" class="chip" data-sample="pier">Sample: Pier</button>
+      <button type="button" class="chip" id="fillAll">One photo, all panels</button>
+    </div>
+    <p class="hint">Drag a photo on the preview to move it. Pick a panel below, then zoom it.</p>
+
+    <h2>2 · Layout</h2>
+    <div class="layout-row" id="layoutRow">
+      <button type="button" data-layout="hero" class="layout-btn active">Hero + sides</button>
+      <button type="button" data-layout="strip" class="layout-btn">Three columns</button>
+      <button type="button" data-layout="top" class="layout-btn">Big top + strip</button>
+    </div>
+
+    <h2>3 · Panel</h2>
+    <div class="panel-tabs" id="panelTabs">
+      <button type="button" data-panel="0" class="panel-tab active">Panel 1</button>
+      <button type="button" data-panel="1" class="panel-tab">Panel 2</button>
+      <button type="button" data-panel="2" class="panel-tab">Panel 3</button>
+    </div>
+    <label>Photo for this panel
+      <select id="panelPhoto"></select>
+    </label>
+    <label>Zoom <span id="zoomVal">100%</span>
+      <input id="zoom" type="range" min="50" max="300" value="100">
+    </label>
+    <label class="check"><input id="fitToggle" type="checkbox"> Fit whole photo (no crop)</label>
+    <button type="button" class="chip" id="resetPanel">Reset this panel's position</button>
+
+    <h2>4 · Caption</h2>
+    <label>Main caption
+      <input id="caption" type="text" maxlength="30" value="VICE CITY">
+    </label>
+    <label>Sub-caption
+      <input id="subCaption" type="text" maxlength="48" value="Neon nights · Ocean Drive">
+    </label>
+    <label>Lettering
+      <select id="lettering">
+        <option value="gradient">Sunset gradient</option>
+        <option value="fill">Solid fill</option>
+        <option value="outline">White + neon outline</option>
+        <option value="glow">Neon glow</option>
+        <option value="shadow">Hard drop shadow</option>
+      </select>
+    </label>
+    <label>Letter colour
+      <input id="letterColor" type="color" value="#ffffff">
+    </label>
+
+    <h2>5 · Colour grade</h2>
+    <div class="grade-row" id="gradeRow">
+      <button type="button" data-grade="sunset" class="grade-btn active">Vice Sunset</button>
+      <button type="button" data-grade="neon" class="grade-btn">Neon Night</button>
+      <button type="button" data-grade="pastel" class="grade-btn">Pastel Day</button>
+    </div>
+    <label class="check"><input id="vignette" type="checkbox" checked> Vignette</label>
+    <label class="check"><input id="grain" type="checkbox"> Film grain</label>
+
+    <h2>6 · Export</h2>
+    <div class="size-row" id="sizeRow">
+      <button type="button" data-size="1080x1080" class="size-btn active">1080 × 1080</button>
+      <button type="button" data-size="1080x1350" class="size-btn">1080 × 1350</button>
+      <button type="button" data-size="1920x1080" class="size-btn">1920 × 1080</button>
+    </div>
+    <button id="export" type="button" class="export-btn">Export PNG</button>
+    <p id="status" role="status">Load a photo to start — or try a sample.</p>
   </section>
-  <canvas id="cover" width="1080" height="1080" aria-label="The cover"></canvas>
+
+  <section class="preview" aria-label="Live preview">
+    <canvas id="cover" width="1080" height="1080"></canvas>
+    <p class="preview-hint">Live preview — drag inside a panel to reposition its photo.</p>
+  </section>
 </main>
+<footer class="foot">Vice Cover Studio — original art, original lettering. Photos stay on your machine; nothing is uploaded.</footer>
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>
