@@ -1,33 +1,43 @@
-// Vice Cover Studio — cover renderer.
-// Draws the multi-panel GTA-style poster onto a canvas: photo panels with
-// white poster gutters, a colour grade, original vector decor (sun disc,
-// palm silhouettes, skyline) and a bold caption block.
-// All decor is drawn in code; no outside artwork is used.
+// Vice Cover Studio — the poster renderer.
+// Paints a multi-panel GTA-style cover onto a canvas: the photos sit in
+// white-guttered panels, a Vice City colour grade washes over them, and the
+// code draws its own decor — a slatted sun disc, palm silhouettes, a
+// skyline — plus a bold caption block in Pricedown lettering. No outside
+// artwork is used anywhere; every picture on the poster is either a photo
+// the user supplied or vector art drawn here.
 
+function linear(ctx, x0, y0, x1, y1, stops) {
+  const g = ctx.createLinearGradient(x0, y0, x1, y1);
+  for (const [at, color] of stops) g.addColorStop(at, color);
+  return g;
+}
+
+// Colour grades: three skies, a translucent wash, a deep shade and an accent.
 export const GRADES = {
   sunset: {
-    label: 'Vice Sunset',
     sky: ['#ff9a3d', '#ff5e7a', '#b13a8f'],
     wash: 'rgba(255, 94, 122, 0.28)',
     deep: 'rgba(46, 16, 68, 0.55)',
     accent: '#ffb347',
+    label: 'Vice Sunset',
   },
   neon: {
-    label: 'Neon Night',
     sky: ['#ff2ea6', '#7b2ff7', '#00e5ff'],
     wash: 'rgba(255, 46, 166, 0.30)',
     deep: 'rgba(10, 8, 48, 0.60)',
     accent: '#00e5ff',
+    label: 'Neon Night',
   },
   pastel: {
-    label: 'Pastel Day',
     sky: ['#ffd9a0', '#ffb3c7', '#a8d8ff'],
     wash: 'rgba(255, 179, 199, 0.22)',
     deep: 'rgba(90, 60, 90, 0.30)',
     accent: '#ff8fb3',
+    label: 'Pastel Day',
   },
 };
 
+// The four cover layouts the editor offers.
 export const LAYOUTS = {
   grid: { label: 'Vice Grid (3×3)' },
   hero: { label: 'Hero + two sides' },
@@ -35,52 +45,14 @@ export const LAYOUTS = {
   top: { label: 'Big top + bottom strip' },
 };
 
-// Panel rectangles as fractions of the photo area (above the caption band).
-export function panelRects(layout, w, h) {
-  const band = h * 0.20; // caption band height
-  const top = 0;
-  const ph = h - band;
-  if (layout === 'grid') {
-    // Busy 3x3 grid: nine equal cells over the photo area.
-    const cw = w / 3;
-    const ch = ph / 3;
-    const rects = [];
-    for (let r = 0; r < 3; r++) {
-      for (let c = 0; c < 3; c++) {
-        rects.push({ x: c * cw, y: top + r * ch, w: cw, h: ch });
-      }
-    }
-    return rects;
-  }
-  if (layout === 'strip') {
-    return [
-      { x: 0, y: top, w: w / 3, h: ph },
-      { x: w / 3, y: top, w: w / 3, h: ph },
-      { x: (2 * w) / 3, y: top, w: w / 3, h: ph },
-    ];
-  }
-  if (layout === 'top') {
-    return [
-      { x: 0, y: top, w, h: ph * 0.68 },
-      { x: 0, y: top + ph * 0.68, w: w / 2, h: ph * 0.32 },
-      { x: w / 2, y: top + ph * 0.68, w: w / 2, h: ph * 0.32 },
-    ];
-  }
-  // hero: big left panel, two stacked on the right
-  return [
-    { x: 0, y: top, w: w * 0.62, h: ph },
-    { x: w * 0.62, y: top, w: w * 0.38, h: ph / 2 },
-    { x: w * 0.62, y: top + ph / 2, w: w * 0.38, h: ph / 2 },
-  ];
-}
-
-function drawPhotoCover(ctx, img, rect, panel) {
+// Draw one photo into a panel rect, honouring the panel's crop: zoom, fit
+// (whole photo, no crop) and drag offsets, all relative to the rect.
+function paintPhoto(ctx, img, rect, panel) {
   if (!img) return;
   const iw = img.naturalWidth || img.width;
   const ih = img.naturalHeight || img.height;
   const zoom = panel.zoom || 1;
-  const fit = panel.fit === 'fit';
-  let scale = fit
+  let scale = panel.fit === 'fit'
     ? Math.min(rect.w / iw, rect.h / ih)
     : Math.max(rect.w / iw, rect.h / ih);
   scale *= zoom;
@@ -98,18 +70,20 @@ function drawPhotoCover(ctx, img, rect, panel) {
   ctx.restore();
 }
 
-function drawSunDisc(ctx, cx, cy, r, grade) {
-  const g = ctx.createLinearGradient(cx, cy - r, cx, cy + r);
-  g.addColorStop(0, grade.sky[0]);
-  g.addColorStop(0.55, grade.sky[1]);
-  g.addColorStop(1, grade.sky[2]);
+// Sunset-poster sun: a gradient disc with horizontal slats cut across its
+// lower half.
+function paintSun(ctx, cx, cy, r, grade) {
+  const g = linear(ctx, cx, cy - r, cx, cy + r, [
+    [0, grade.sky[0]],
+    [0.55, grade.sky[1]],
+    [1, grade.sky[2]],
+  ]);
   ctx.save();
   ctx.globalAlpha = 0.95;
   ctx.fillStyle = g;
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.fill();
-  // horizontal slats cut across the lower half, sunset-poster style
   ctx.globalCompositeOperation = 'destination-out';
   for (let i = 0; i < 4; i++) {
     const y = cy + r * (0.08 + i * 0.2);
@@ -118,7 +92,8 @@ function drawSunDisc(ctx, cx, cy, r, grade) {
   ctx.restore();
 }
 
-function drawPalm(ctx, x, y, s, lean) {
+// A palm silhouette: one curved trunk and seven drooping fronds.
+function paintPalm(ctx, x, y, s, lean) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(s, s);
@@ -131,7 +106,6 @@ function drawPalm(ctx, x, y, s, lean) {
   ctx.moveTo(0, 0);
   ctx.quadraticCurveTo(14, -70, 6, -150);
   ctx.stroke();
-  // fronds
   ctx.lineWidth = 6;
   for (let i = 0; i < 7; i++) {
     const a = -Math.PI * 0.15 - (i / 6) * Math.PI * 0.75;
@@ -147,7 +121,8 @@ function drawPalm(ctx, x, y, s, lean) {
   ctx.restore();
 }
 
-function drawSkyline(ctx, w, y, h, color) {
+// A deterministic skyline: same seed, same buildings, every render.
+function paintSkyline(ctx, w, y, h, color) {
   ctx.save();
   ctx.fillStyle = color;
   ctx.globalAlpha = 0.9;
@@ -164,7 +139,8 @@ function drawSkyline(ctx, w, y, h, color) {
   ctx.restore();
 }
 
-function drawGrain(ctx, w, h, amount) {
+// Sparse monochrome grain: one random grey value per 3px block.
+function paintGrain(ctx, w, h, amount) {
   const step = 3;
   ctx.save();
   ctx.globalAlpha = amount;
@@ -178,7 +154,8 @@ function drawGrain(ctx, w, h, amount) {
   ctx.restore();
 }
 
-function drawVignette(ctx, w, h) {
+// A soft dark falloff toward the corners.
+function paintVignette(ctx, w, h) {
   const g = ctx.createRadialGradient(
     w / 2, h / 2, Math.min(w, h) * 0.42,
     w / 2, h / 2, Math.max(w, h) * 0.75,
@@ -189,34 +166,88 @@ function drawVignette(ctx, w, h) {
   ctx.fillRect(0, 0, w, h);
 }
 
-// Caption lettering: auto-fit heavy system font, with fill / outline / glow / gradient styles.
+// Panel rectangles as fractions of the photo area (the strip above the
+// caption band). The grid is nine equal cells, row by row.
+export function panelRects(layout, w, h) {
+  const bandH = h * 0.20;
+  const areaH = h - bandH;
+  if (layout === 'grid') {
+    const cellW = w / 3;
+    const cellH = areaH / 3;
+    const cells = [];
+    for (let i = 0; i < 9; i++) {
+      const row = Math.floor(i / 3);
+      const col = i % 3;
+      cells.push({ x: col * cellW, y: row * cellH, w: cellW, h: cellH });
+    }
+    return cells;
+  }
+  if (layout === 'strip') {
+    return [
+      { x: 0, y: 0, w: w / 3, h: areaH },
+      { x: w / 3, y: 0, w: w / 3, h: areaH },
+      { x: (2 * w) / 3, y: 0, w: w / 3, h: areaH },
+    ];
+  }
+  if (layout === 'top') {
+    return [
+      { x: 0, y: 0, w, h: areaH * 0.68 },
+      { x: 0, y: areaH * 0.68, w: w / 2, h: areaH * 0.32 },
+      { x: w / 2, y: areaH * 0.68, w: w / 2, h: areaH * 0.32 },
+    ];
+  }
+  // hero: one big panel on the left, two stacked on the right
+  return [
+    { x: 0, y: 0, w: w * 0.62, h: areaH },
+    { x: w * 0.62, y: 0, w: w * 0.38, h: areaH / 2 },
+    { x: w * 0.62, y: areaH / 2, w: w * 0.38, h: areaH / 2 },
+  ];
+}
+
+// The photo rect inside a cell: inset by the white poster gutter. Cells on
+// the poster's left edge take a full gutter; the rest share one.
+function cellFrame(rect, index, layout, gutter) {
+  const atLeftEdge = layout === 'grid' ? index % 3 === 0 : (index === 0 || layout === 'top');
+  const frame = {
+    x: rect.x + (atLeftEdge ? gutter : gutter / 2),
+    y: rect.y + gutter / 2,
+    w: rect.w - gutter,
+    h: rect.h - gutter,
+  };
+  if (layout === 'hero' && index === 0) frame.w = rect.w - gutter * 1.5;
+  return frame;
+}
+
+// Caption lettering in the bottom band: heavy Pricedown (vendored in
+// app/fonts/, heavy system stack as fallback), auto-fit to the band width,
+// with fill / outline / glow / gradient styles.
 export function drawCaption(ctx, state, w, h) {
   const band = h * 0.20;
   const bandY = h - band;
   const grade = GRADES[state.grade] || GRADES.sunset;
   const text = (state.caption || '').trim().toUpperCase();
   const sub = (state.sub || '').trim();
-  // caption band: deep gradient + skyline silhouette along its top edge
-  const bg = ctx.createLinearGradient(0, bandY, 0, h);
-  bg.addColorStop(0, grade.sky[2]);
-  bg.addColorStop(0.5, grade.sky[1]);
-  bg.addColorStop(1, '#160a24');
+  // The band itself: a deep gradient with a skyline silhouette on its top edge.
+  const bg = linear(ctx, 0, bandY, 0, h, [
+    [0, grade.sky[2]],
+    [0.5, grade.sky[1]],
+    [1, '#160a24'],
+  ]);
   ctx.fillStyle = bg;
   ctx.fillRect(0, bandY, w, band);
-  drawSkyline(ctx, w, bandY + 2, band * 0.42, 'rgba(20,8,31,0.85)');
-  // thin accent rule
+  paintSkyline(ctx, w, bandY + 2, band * 0.42, 'rgba(20,8,31,0.85)');
+  // Thin accent rule along the top of the band.
   ctx.fillStyle = grade.accent;
   ctx.fillRect(0, bandY, w, Math.max(3, h * 0.004));
 
   if (!text) return;
   const maxW = w * 0.88;
+  const displayFont = (s) => `${s}px Pricedown, 'Arial Black', 'Helvetica Neue', Arial, sans-serif`;
   let size = band * 0.52;
-  // Pricedown is the GTA display font (vendored in app/fonts/); heavy system stack is the fallback.
-  const font = (s) => `${s}px Pricedown, 'Arial Black', 'Helvetica Neue', Arial, sans-serif`;
-  ctx.font = font(size);
+  ctx.font = displayFont(size);
   while (ctx.measureText(text).width > maxW && size > 14) {
     size -= 2;
-    ctx.font = font(size);
+    ctx.font = displayFont(size);
   }
   const cy = bandY + band * 0.52 + size * 0.36;
   ctx.textAlign = 'center';
@@ -232,17 +263,17 @@ export function drawCaption(ctx, state, w, h) {
     ctx.shadowOffsetY = size * 0.07;
   }
   if (style === 'gradient') {
-    const tg = ctx.createLinearGradient(0, cy - size, 0, cy + size * 0.15);
-    tg.addColorStop(0, '#ffffff');
-    tg.addColorStop(0.55, grade.sky[0]);
-    tg.addColorStop(1, grade.sky[1]);
-    ctx.fillStyle = tg;
+    ctx.fillStyle = linear(ctx, 0, cy - size, 0, cy + size * 0.15, [
+      [0, '#ffffff'],
+      [0.55, grade.sky[0]],
+      [1, grade.sky[1]],
+    ]);
   } else if (style === 'outline') {
     ctx.fillStyle = '#ffffff';
   } else {
     ctx.fillStyle = state.letterColor || '#ffffff';
   }
-  // Thick dark outline first (GTA logo feel + readability over any photo).
+  // A thick dark outline first: the GTA logo feel, readable over any photo.
   ctx.lineWidth = Math.max(3, size * 0.12);
   ctx.strokeStyle = '#14081f';
   ctx.lineJoin = 'round';
@@ -260,14 +291,15 @@ export function drawCaption(ctx, state, w, h) {
     ctx.font = `700 ${subSize}px 'Arial Narrow', Arial, sans-serif`;
     ctx.fillStyle = 'rgba(255,255,255,0.92)';
     ctx.textAlign = 'center';
-    const letters = sub.toUpperCase().split('').join(' ');
+    const letters = sub.toUpperCase().split('').join('\u200A');
     ctx.fillText(letters, w / 2, bandY + band * 0.88);
   }
 }
 
-// Central VI logo for the grid layout: a big gradient "VI" in Pricedown with
-// "grand theft auto" stacked inside it, like the official GTA VI cover.
-// Drawn over the middle of the photo area so the grid stays busy around it.
+// The central VI logo for the grid layout: a big gradient "VI" in
+// Pricedown with "grand theft auto" stacked inside it, in the manner of
+// the official GTA VI cover. It sits over the middle of the photo area so
+// the busy grid stays busy around it.
 export function drawVILogo(ctx, w, h, grade) {
   const photoH = h * 0.80;
   const cx = w / 2;
@@ -276,15 +308,16 @@ export function drawVILogo(ctx, w, h, grade) {
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  // Drop shadow for the whole logo.
+  // Drop shadow under the whole logo.
   ctx.shadowColor = 'rgba(0,0,0,0.65)';
   ctx.shadowBlur = size * 0.06;
   ctx.shadowOffsetY = size * 0.04;
-  // Big VI: gradient fill, thick white outline.
-  const vg = ctx.createLinearGradient(cx - size * 0.5, cy - size * 0.5, cx + size * 0.5, cy + size * 0.5);
-  vg.addColorStop(0, '#7b2ff7');
-  vg.addColorStop(0.5, '#ff2ea6');
-  vg.addColorStop(1, '#ff9a3d');
+  // The big VI: diagonal gradient fill, thick white outline.
+  const vg = linear(ctx, cx - size * 0.5, cy - size * 0.5, cx + size * 0.5, cy + size * 0.5, [
+    [0, '#7b2ff7'],
+    [0.5, '#ff2ea6'],
+    [1, '#ff9a3d'],
+  ]);
   ctx.font = `${size}px Pricedown, 'Arial Black', sans-serif`;
   ctx.lineWidth = Math.max(4, size * 0.07);
   ctx.strokeStyle = '#ffffff';
@@ -295,7 +328,7 @@ export function drawVILogo(ctx, w, h, grade) {
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
-  // Stacked "grand theft auto" inside the VI, white with a dark outline.
+  // "grand theft auto", stacked inside the VI, white with a dark outline.
   const lines = ['grand', 'theft', 'auto'];
   const ls = size * 0.185;
   ctx.font = `${ls}px Pricedown, 'Arial Black', sans-serif`;
@@ -312,81 +345,74 @@ export function drawVILogo(ctx, w, h, grade) {
   ctx.restore();
 }
 
-// Full cover: panels, grade wash, decor, caption band, frame.
+// The full cover: panels, grade wash, decor, caption band, frame.
 export function drawCover(canvas, state) {
   const ctx = canvas.getContext('2d');
   const w = canvas.width;
   const h = canvas.height;
   const grade = GRADES[state.grade] || GRADES.sunset;
+  const layout = state.layout || 'hero';
+  const photoH = h * 0.8;
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = '#160a24';
   ctx.fillRect(0, 0, w, h);
 
-  const rects = panelRects(state.layout || 'hero', w, h);
+  const cells = panelRects(layout, w, h);
   const gutter = Math.max(4, Math.round(w * 0.008));
-  rects.forEach((r, i) => {
-    const p = (state.panels && state.panels[i]) || {};
-    const img = p.photo || null;
-    const firstCol = state.layout === 'grid' ? (i % 3 === 0) : (i === 0 || state.layout === 'top');
-    const inner = {
-      x: r.x + (firstCol ? gutter : gutter / 2),
-      y: r.y + gutter / 2,
-      w: r.w - gutter,
-      h: r.h - gutter,
-    };
-    if (state.layout === 'hero' && i === 0) inner.w = r.w - gutter * 1.5;
-    drawPhotoCover(ctx, img, inner, p);
-    if (!img) {
-      // empty panel: sunset sky placeholder so the poster never looks blank
-      const g = ctx.createLinearGradient(inner.x, inner.y, inner.x, inner.y + inner.h);
-      g.addColorStop(0, grade.sky[0]);
-      g.addColorStop(1, grade.sky[2]);
+  cells.forEach((cell, i) => {
+    const panel = (state.panels && state.panels[i]) || {};
+    const frame = cellFrame(cell, i, layout, gutter);
+    paintPhoto(ctx, panel.photo || null, frame, panel);
+    if (!panel.photo) {
+      // An empty panel gets a sunset-sky placeholder so the poster is
+      // never blank, with a small sun of its own.
+      const g = linear(ctx, frame.x, frame.y, frame.x, frame.y + frame.h, [
+        [0, grade.sky[0]],
+        [1, grade.sky[2]],
+      ]);
       ctx.fillStyle = g;
-      ctx.fillRect(inner.x, inner.y, inner.w, inner.h);
-      drawSunDisc(ctx, inner.x + inner.w * 0.5, inner.y + inner.h * 0.38, Math.min(inner.w, inner.h) * 0.22, grade);
+      ctx.fillRect(frame.x, frame.y, frame.w, frame.h);
+      paintSun(ctx, frame.x + frame.w * 0.5, frame.y + frame.h * 0.38, Math.min(frame.w, frame.h) * 0.22, grade);
     }
   });
 
-  // grade wash over the photo area only
-  const photoH = h * 0.8;
-  const wash = ctx.createLinearGradient(0, 0, 0, photoH);
-  wash.addColorStop(0, 'rgba(255,255,255,0.05)');
-  wash.addColorStop(0.7, grade.wash);
-  wash.addColorStop(1, grade.deep);
+  // The grade wash over the photo area only.
+  const wash = linear(ctx, 0, 0, 0, photoH, [
+    [0, 'rgba(255,255,255,0.05)'],
+    [0.7, grade.wash],
+    [1, grade.deep],
+  ]);
   ctx.fillStyle = wash;
   ctx.fillRect(0, 0, w, photoH);
 
-  // Sun disc sitting on the horizon at the foot of the photo area, so the
-  // sun never covers a face in a panel. Skipped for the grid: the busy
-  // panels already fill the photo area, and the VI logo owns the middle.
-  if (state.layout !== 'grid') {
-    const photoH2 = h * 0.8;
-    const sunX = w * 0.25;
-    const sunY = photoH2;
-    drawSunDisc(ctx, sunX, sunY - Math.min(w, h) * 0.02, Math.min(w, h) * 0.085, grade);
+  // A sun disc on the horizon at the foot of the photo area, so the sun
+  // never covers a face in a panel. Skipped for the grid: the busy panels
+  // already fill the photo area, and the VI logo owns the middle.
+  if (layout !== 'grid') {
+    paintSun(ctx, w * 0.25, photoH - Math.min(w, h) * 0.02, Math.min(w, h) * 0.085, grade);
   }
 
-  // white poster gutters between panels
+  // White poster gutters between the panels, then the outer frame.
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = gutter;
-  rects.forEach((r) => {
-    ctx.strokeRect(r.x, r.y, r.w, r.h);
+  cells.forEach((cell) => {
+    ctx.strokeRect(cell.x, cell.y, cell.w, cell.h);
   });
-  // outer frame
-  ctx.lineWidth = Math.max(6, Math.round(w * 0.012));
+  const frameW = Math.max(6, Math.round(w * 0.012));
+  ctx.lineWidth = frameW;
   ctx.strokeStyle = '#ffffff';
-  ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, w - ctx.lineWidth, h - ctx.lineWidth);
+  ctx.strokeRect(frameW / 2, frameW / 2, w - frameW, h - frameW);
 
-  // Central VI logo over the busy grid (official-cover look).
-  if (state.layout === 'grid') drawVILogo(ctx, w, h, grade);
+  // The central VI logo over the busy grid (the official-cover look).
+  if (layout === 'grid') drawVILogo(ctx, w, h, grade);
 
   drawCaption(ctx, state, w, h);
 
-  // palm silhouettes flanking the caption band
-  const ps = Math.min(w, h) * 0.0011;
-  drawPalm(ctx, w * 0.045, h * 0.995, ps, -0.18);
-  drawPalm(ctx, w * 0.955, h * 0.995, ps, 0.18);
+  // Palm silhouettes flanking the caption band.
+  const palmScale = Math.min(w, h) * 0.0011;
+  paintPalm(ctx, w * 0.045, h * 0.995, palmScale, -0.18);
+  paintPalm(ctx, w * 0.955, h * 0.995, palmScale, 0.18);
 
-  if (state.vignette !== false) drawVignette(ctx, w, h);
-  if (state.grain) drawGrain(ctx, w, h, 0.05);
+  if (state.vignette !== false) paintVignette(ctx, w, h);
+  if (state.grain) paintGrain(ctx, w, h, 0.05);
 }
