@@ -38,18 +38,24 @@ export async function runShot(shot, query, api) {
   canvas.width = w;
   canvas.height = h;
 
-  // Load the sample photos, then place them: hero gets the main photo,
-  // the side panels get the second photo (or the same one again).
-  const main = await api.loadSample(query.get('photo') || 'pier');
-  const secondName = query.get('photo2') || (query.get('photo') === 'pier' ? 'boulevard' : 'pier');
-  const second = await api.loadSample(secondName);
-  state.panels[0].photo = main;
-  state.panels[1].photo = second;
-  state.panels[2].photo = query.get('same') ? main : second;
+  if (layout === 'grid') {
+    // Vice Grid: nine distinct panel illustrations, one per cell, in grid order.
+    await api.loadGridPanels();
+  } else {
+    // Load the sample photos, then place them: hero gets the main photo,
+    // the side panels get the second photo (or the same one again).
+    const main = await api.loadSample(query.get('photo') || 'pier');
+    const secondName = query.get('photo2') || (query.get('photo') === 'pier' ? 'boulevard' : 'pier');
+    const second = await api.loadSample(secondName);
+    state.panels[0].photo = main;
+    state.panels[1].photo = second;
+    state.panels[2].photo = query.get('same') ? main : second;
+  }
   // Crops tuned per layout so faces stay in frame: narrow strip panels and
   // short strip panels need no zoom and a downward nudge to show the top
   // of a square photo; the hero layout can crop tighter.
   const crops = {
+    grid: [[1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0]],
     strip: [[1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0]],
     top: [[1.0, 0, 0.85], [1.0, 0, 1.1], [1.0, 0, 1.1]],
     hero: [[1.05, 0, 0], [1.25, 0, -0.06], [1.15, 0, 0]],
@@ -62,7 +68,8 @@ export async function runShot(shot, query, api) {
   });
 
   if (shot === 'cover') document.body.classList.add('shot-cover');
-  // Caption lettering uses system fonts only, so there is no webfont to wait for.
+  // Wait for Pricedown (the GTA display font) so the caption and VI logo render in it.
+  try { await document.fonts.load('40px Pricedown'); } catch { /* fall back to the system stack */ }
   try { await document.fonts.ready; } catch { /* fall back */ }
   drawCover(canvas, state);
   renderPreview();

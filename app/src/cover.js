@@ -29,6 +29,7 @@ export const GRADES = {
 };
 
 export const LAYOUTS = {
+  grid: { label: 'Vice Grid (3×3)' },
   hero: { label: 'Hero + two sides' },
   strip: { label: 'Three-column strip' },
   top: { label: 'Big top + bottom strip' },
@@ -39,6 +40,18 @@ export function panelRects(layout, w, h) {
   const band = h * 0.20; // caption band height
   const top = 0;
   const ph = h - band;
+  if (layout === 'grid') {
+    // Busy 3x3 grid: nine equal cells over the photo area.
+    const cw = w / 3;
+    const ch = ph / 3;
+    const rects = [];
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        rects.push({ x: c * cw, y: top + r * ch, w: cw, h: ch });
+      }
+    }
+    return rects;
+  }
   if (layout === 'strip') {
     return [
       { x: 0, y: top, w: w / 3, h: ph },
@@ -198,7 +211,8 @@ export function drawCaption(ctx, state, w, h) {
   if (!text) return;
   const maxW = w * 0.88;
   let size = band * 0.52;
-  const font = (s) => `900 ${s}px 'Arial Black', 'Helvetica Neue', Arial, sans-serif`;
+  // Pricedown is the GTA display font (vendored in app/fonts/); heavy system stack is the fallback.
+  const font = (s) => `${s}px Pricedown, 'Arial Black', 'Helvetica Neue', Arial, sans-serif`;
   ctx.font = font(size);
   while (ctx.measureText(text).width > maxW && size > 14) {
     size -= 2;
@@ -228,8 +242,13 @@ export function drawCaption(ctx, state, w, h) {
   } else {
     ctx.fillStyle = state.letterColor || '#ffffff';
   }
+  // Thick dark outline first (GTA logo feel + readability over any photo).
+  ctx.lineWidth = Math.max(3, size * 0.12);
+  ctx.strokeStyle = '#14081f';
+  ctx.lineJoin = 'round';
+  ctx.strokeText(text, w / 2, cy);
   if (style === 'outline') {
-    ctx.lineWidth = Math.max(2, size * 0.09);
+    ctx.lineWidth = Math.max(2, size * 0.07);
     ctx.strokeStyle = grade.sky[1];
     ctx.strokeText(text, w / 2, cy);
   }
@@ -244,6 +263,53 @@ export function drawCaption(ctx, state, w, h) {
     const letters = sub.toUpperCase().split('').join(' ');
     ctx.fillText(letters, w / 2, bandY + band * 0.88);
   }
+}
+
+// Central VI logo for the grid layout: a big gradient "VI" in Pricedown with
+// "grand theft auto" stacked inside it, like the official GTA VI cover.
+// Drawn over the middle of the photo area so the grid stays busy around it.
+export function drawVILogo(ctx, w, h, grade) {
+  const photoH = h * 0.80;
+  const cx = w / 2;
+  const cy = photoH * 0.46;
+  const size = Math.min(w, photoH) * 0.42;
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // Drop shadow for the whole logo.
+  ctx.shadowColor = 'rgba(0,0,0,0.65)';
+  ctx.shadowBlur = size * 0.06;
+  ctx.shadowOffsetY = size * 0.04;
+  // Big VI: gradient fill, thick white outline.
+  const vg = ctx.createLinearGradient(cx - size * 0.5, cy - size * 0.5, cx + size * 0.5, cy + size * 0.5);
+  vg.addColorStop(0, '#7b2ff7');
+  vg.addColorStop(0.5, '#ff2ea6');
+  vg.addColorStop(1, '#ff9a3d');
+  ctx.font = `${size}px Pricedown, 'Arial Black', sans-serif`;
+  ctx.lineWidth = Math.max(4, size * 0.07);
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineJoin = 'round';
+  ctx.fillStyle = vg;
+  ctx.strokeText('VI', cx, cy);
+  ctx.fillText('VI', cx, cy);
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+  // Stacked "grand theft auto" inside the VI, white with a dark outline.
+  const lines = ['grand', 'theft', 'auto'];
+  const ls = size * 0.185;
+  ctx.font = `${ls}px Pricedown, 'Arial Black', sans-serif`;
+  ctx.lineWidth = Math.max(2, ls * 0.14);
+  ctx.strokeStyle = '#14081f';
+  ctx.fillStyle = '#ffffff';
+  const lh = ls * 1.02;
+  const y0 = cy - lh;
+  lines.forEach((line, i) => {
+    const y = y0 + i * lh;
+    ctx.strokeText(line, cx, y);
+    ctx.fillText(line, cx, y);
+  });
+  ctx.restore();
 }
 
 // Full cover: panels, grade wash, decor, caption band, frame.
@@ -261,8 +327,9 @@ export function drawCover(canvas, state) {
   rects.forEach((r, i) => {
     const p = (state.panels && state.panels[i]) || {};
     const img = p.photo || null;
+    const firstCol = state.layout === 'grid' ? (i % 3 === 0) : (i === 0 || state.layout === 'top');
     const inner = {
-      x: r.x + (i === 0 || state.layout === 'top' ? gutter : gutter / 2),
+      x: r.x + (firstCol ? gutter : gutter / 2),
       y: r.y + gutter / 2,
       w: r.w - gutter,
       h: r.h - gutter,
@@ -290,11 +357,14 @@ export function drawCover(canvas, state) {
   ctx.fillRect(0, 0, w, photoH);
 
   // Sun disc sitting on the horizon at the foot of the photo area, so the
-  // sun never covers a face in a panel.
-  const photoH2 = h * 0.8;
-  const sunX = w * 0.25;
-  const sunY = photoH2;
-  drawSunDisc(ctx, sunX, sunY - Math.min(w, h) * 0.02, Math.min(w, h) * 0.085, grade);
+  // sun never covers a face in a panel. Skipped for the grid: the busy
+  // panels already fill the photo area, and the VI logo owns the middle.
+  if (state.layout !== 'grid') {
+    const photoH2 = h * 0.8;
+    const sunX = w * 0.25;
+    const sunY = photoH2;
+    drawSunDisc(ctx, sunX, sunY - Math.min(w, h) * 0.02, Math.min(w, h) * 0.085, grade);
+  }
 
   // white poster gutters between panels
   ctx.strokeStyle = '#ffffff';
@@ -306,6 +376,9 @@ export function drawCover(canvas, state) {
   ctx.lineWidth = Math.max(6, Math.round(w * 0.012));
   ctx.strokeStyle = '#ffffff';
   ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, w - ctx.lineWidth, h - ctx.lineWidth);
+
+  // Central VI logo over the busy grid (official-cover look).
+  if (state.layout === 'grid') drawVILogo(ctx, w, h, grade);
 
   drawCaption(ctx, state, w, h);
 

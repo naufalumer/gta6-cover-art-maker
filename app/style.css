@@ -1,4 +1,11 @@
-/* Caption lettering uses a heavy system font stack (no vendored font files). */
+/* Caption lettering uses Pricedown (the GTA display font, vendored in app/fonts/) with a heavy system stack as fallback. */
+@font-face {
+  font-family: 'Pricedown';
+  src: url('./fonts/Pricedown.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -15,7 +22,7 @@ body {
   background: linear-gradient(90deg, #ff5e7a, #b13a8f 55%, #00c2d8);
 }
 .brand {
-  font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Pricedown', 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 900;
   font-size: 30px;
   letter-spacing: 2px;
@@ -96,7 +103,7 @@ label input[type="color"] { width: 100%; height: 36px; padding: 2px; background:
   width: 100%;
   margin-top: 12px;
   padding: 14px;
-  font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Pricedown', 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 900;
   font-size: 20px;
   letter-spacing: 2px;

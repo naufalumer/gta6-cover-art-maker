@@ -10,7 +10,7 @@ const canvas = document.getElementById('cover');
 const statusEl = document.getElementById('status');
 
 export const state = {
-  layout: 'hero',
+  layout: 'grid',
   grade: 'sunset',
   lettering: 'gradient',
   letterColor: '#ffffff',
@@ -23,11 +23,36 @@ export const state = {
     { photo: null, zoom: 1, ox: 0, oy: 0, fit: false },
     { photo: null, zoom: 1, ox: 0, oy: 0, fit: false },
     { photo: null, zoom: 1, ox: 0, oy: 0, fit: false },
+    { photo: null, zoom: 1, ox: 0, oy: 0, fit: false },
+    { photo: null, zoom: 1, ox: 0, oy: 0, fit: false },
+    { photo: null, zoom: 1, ox: 0, oy: 0, fit: false },
+    { photo: null, zoom: 1, ox: 0, oy: 0, fit: false },
+    { photo: null, zoom: 1, ox: 0, oy: 0, fit: false },
+    { photo: null, zoom: 1, ox: 0, oy: 0, fit: false },
   ],
 };
 
 export const photoLibrary = []; // {name, img}
 let activePanel = 0;
+
+// The nine Vice Grid panels, in grid order (row by row). Each is a distinct
+// GTA-style illustration in app/panels/, generated for this entry.
+export const GRID_PANELS = ['heli', 'couple', 'bike', 'car', 'city', 'gunman', 'gator', 'flamingo', 'boat'];
+
+// Panel tabs: 9 for the Vice Grid, 3 for the other layouts.
+function buildPanelTabs(n) {
+  const tabs = document.getElementById('panelTabs');
+  tabs.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.panel = String(i);
+    b.className = 'panel-tab' + (i === activePanel ? ' active' : '');
+    b.textContent = `Panel ${i + 1}`;
+    tabs.appendChild(b);
+  }
+  if (activePanel >= n) { activePanel = 0; syncPanelControls(); }
+}
 
 export function renderPreview() {
   drawCover(canvas, state);
@@ -80,6 +105,26 @@ export function loadSample(name) {
   return addPhoto(`samples/${name}.jpg`, name);
 }
 
+export function loadPanel(name) {
+  return addPhoto(`panels/${name}.png`, name);
+}
+
+// Load all nine Vice Grid panels and place one in each grid cell.
+export async function loadGridPanels() {
+  for (let i = 0; i < GRID_PANELS.length; i++) {
+    const name = GRID_PANELS[i];
+    const existing = photoLibrary.find((e) => e.name === name);
+    const img = existing ? existing.img : await loadPanel(name);
+    state.panels[i].photo = img;
+    state.panels[i].zoom = 1;
+    state.panels[i].ox = 0;
+    state.panels[i].oy = 0;
+    state.panels[i].fit = false;
+  }
+  refreshPhotoSelect();
+  renderPreview();
+}
+
 function syncPanelControls() {
   const p = state.panels[activePanel];
   document.getElementById('zoom').value = Math.round((p.zoom || 1) * 100);
@@ -113,7 +158,15 @@ function bindControls() {
     if (!img) { setStatus('Load a photo first.'); return; }
     state.panels.forEach((p) => { p.photo = img; });
     renderPreview();
-    setStatus('One photo now fills all three panels.');
+    setStatus('One photo now fills every panel.');
+  });
+
+  document.getElementById('loadGrid').addEventListener('click', async () => {
+    state.layout = 'grid';
+    document.querySelectorAll('#layoutRow .layout-btn').forEach((x) => x.classList.toggle('active', x.dataset.layout === 'grid'));
+    buildPanelTabs(9);
+    await loadGridPanels();
+    setStatus('Vice Grid loaded — nine distinct panels.');
   });
 
   document.getElementById('layoutRow').addEventListener('click', (e) => {
@@ -121,6 +174,7 @@ function bindControls() {
     if (!b) return;
     state.layout = b.dataset.layout;
     document.querySelectorAll('#layoutRow .layout-btn').forEach((x) => x.classList.toggle('active', x === b));
+    buildPanelTabs(state.layout === 'grid' ? 9 : 3);
     renderPreview();
   });
 
@@ -261,6 +315,7 @@ export function exportCover() {
   });
 }
 
+buildPanelTabs(state.layout === 'grid' ? 9 : 3);
 bindControls();
 bindDrag();
 syncPanelControls();
@@ -269,7 +324,7 @@ renderPreview();
 const params = new URLSearchParams(location.search);
 const shot = params.get('shot');
 if (shot) {
-  runShot(shot, params, { addPhoto, loadSample, state, renderPreview }).catch((err) => {
+  runShot(shot, params, { addPhoto, loadSample, loadPanel, loadGridPanels, state, renderPreview }).catch((err) => {
     console.error(err);
     window.__shotReady = true;
   });
