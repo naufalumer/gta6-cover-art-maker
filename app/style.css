@@ -1,4 +1,5 @@
-/* Caption lettering uses Pricedown (the GTA display font, vendored in app/fonts/) with a heavy system stack as fallback. */
+/* Pricedown is the GTA display font for caption lettering, vendored in
+   app/fonts/; the heavy system stack is the fallback. */
 @font-face {
   font-family: 'Pricedown';
   src: url('./fonts/Pricedown.otf') format('opentype');
@@ -6,25 +7,29 @@
   font-style: normal;
   font-display: swap;
 }
+
+/* Base */
 * { box-sizing: border-box; }
 body {
-  margin: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: #12081d;
   color: #f5eefc;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  margin: 0;
 }
+
+/* Page chrome: the gradient top bar and the footer line. */
 .topbar {
+  background: linear-gradient(90deg, #ff5e7a, #b13a8f 55%, #00c2d8);
   display: flex;
   align-items: baseline;
   gap: 18px;
   flex-wrap: wrap;
   padding: 14px 22px;
-  background: linear-gradient(90deg, #ff5e7a, #b13a8f 55%, #00c2d8);
 }
 .brand {
   font-family: 'Pricedown', 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 900;
   font-size: 30px;
+  font-weight: 900;
   letter-spacing: 2px;
   color: #fff;
   text-shadow: 3px 3px 0 #14081f;
@@ -36,6 +41,9 @@ body {
   margin-right: 8px;
 }
 .tagline { margin: 0; color: #ffe9f2; font-size: 14px; }
+.foot { text-align: center; color: #8d76a6; font-size: 12px; padding: 0 20px 18px; }
+
+/* Layout: controls on the left, live preview on the right. */
 .app {
   display: grid;
   grid-template-columns: 340px 1fr;
@@ -44,6 +52,21 @@ body {
   max-width: 1400px;
   margin: 0 auto;
 }
+.preview { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+#cover {
+  max-width: 100%;
+  max-height: calc(100vh - 190px);
+  width: auto;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+  cursor: grab;
+  touch-action: none;
+}
+#cover:active { cursor: grabbing; }
+.preview-hint { font-size: 13px; color: #b9a3cc; margin: 0; }
+
+/* The controls panel. */
 .controls {
   background: #1e1030;
   border: 1px solid #4a2a66;
@@ -52,8 +75,8 @@ body {
 }
 .controls h2 {
   font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 900;
   font-size: 17px;
+  font-weight: 900;
   letter-spacing: 1.5px;
   color: #ffb347;
   margin: 18px 0 8px;
@@ -74,6 +97,8 @@ label input[type="range"] { width: 100%; accent-color: #ff5e7a; }
 label input[type="color"] { width: 100%; height: 36px; padding: 2px; background: #2a1840; border: 1px solid #6b4a8c; border-radius: 8px; }
 .check { display: flex; align-items: center; gap: 8px; }
 .check input { accent-color: #ff5e7a; width: 17px; height: 17px; }
+
+/* Buttons, chips and tabs share one look; .active marks the selection. */
 .file-label {
   display: block;
   text-align: center;
@@ -86,6 +111,7 @@ label input[type="color"] { width: 100%; height: 36px; padding: 2px; background:
 }
 .file-label input { display: none; }
 .sample-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.layout-row, .grade-row, .size-row, .panel-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
 .chip, .layout-btn, .grade-btn, .size-btn, .panel-tab {
   background: #2a1840;
   color: #f5eefc;
@@ -96,7 +122,6 @@ label input[type="color"] { width: 100%; height: 36px; padding: 2px; background:
   cursor: pointer;
 }
 .chip:hover, .layout-btn:hover, .grade-btn:hover, .size-btn:hover, .panel-tab:hover { border-color: #ff5e7a; }
-.layout-row, .grade-row, .size-row, .panel-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
 .active { background: #ff5e7a; border-color: #ff5e7a; color: #fff; font-weight: 700; }
 .hint { font-size: 12px; color: #b9a3cc; margin: 6px 0; }
 .export-btn {
@@ -104,8 +129,8 @@ label input[type="color"] { width: 100%; height: 36px; padding: 2px; background:
   margin-top: 12px;
   padding: 14px;
   font-family: 'Pricedown', 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 900;
   font-size: 20px;
+  font-weight: 900;
   letter-spacing: 2px;
   color: #14081f;
   background: linear-gradient(90deg, #ffb347, #ff5e7a);
@@ -115,23 +140,14 @@ label input[type="color"] { width: 100%; height: 36px; padding: 2px; background:
 }
 .export-btn:hover { filter: brightness(1.1); }
 #status { font-size: 13px; color: #b9a3cc; min-height: 18px; }
-.preview { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-#cover {
-  max-width: 100%;
-  max-height: calc(100vh - 190px);
-  width: auto;
-  height: auto;
-  border-radius: 6px;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
-  cursor: grab;
-  touch-action: none;
-}
-#cover:active { cursor: grabbing; }
-.preview-hint { font-size: 13px; color: #b9a3cc; margin: 0; }
-.foot { text-align: center; color: #8d76a6; font-size: 12px; padding: 0 20px 18px; }
+
+/* Screenshot mode (?shot=cover): hide the chrome, the canvas fills the
+   viewport so the screenshot is the exported cover alone. */
 body.shot-cover .topbar, body.shot-cover .controls, body.shot-cover .foot, body.shot-cover .preview-hint { display: none; }
 body.shot-cover .app { display: block; padding: 0; margin: 0; max-width: none; }
 body.shot-cover #cover { max-height: none; max-width: none; width: 100vw; height: 100vh; object-fit: contain; border-radius: 0; box-shadow: none; background: #160a24; }
+
+/* Narrow screens: stack the controls above the preview. */
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; }
   #cover { max-height: none; }
