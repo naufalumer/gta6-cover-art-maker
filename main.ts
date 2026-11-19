@@ -3,7 +3,7 @@
 // and no network request), and the program hands it in. It copies app/ and screenshots/ from beside this file to
 // /output and writes /output/dossier.json, the summary the judge reads, with the vendored make.fun library.
 // The app turns any photo(s) and a caption into a multi-panel GTA-style poster cover: three layouts, per-panel
-// crop/zoom/drag, Anton lettering in five styles, three Vice City colour grades, sun/palm/skyline vector decor
+// crop/zoom/drag, heavy system-font lettering in five styles, three Vice City colour grades, sun/palm/skyline vector decor
 // drawn in code, and PNG export at 1080x1080, 1080x1350 and 1920x1080. Its two sample photos (app/samples/)
 // were made for make.fun with an image model and are free to use. Put your 3 or 4 PNG or JPEG screenshots in
 // screenshots/ (the first by name is the cover) and run it.

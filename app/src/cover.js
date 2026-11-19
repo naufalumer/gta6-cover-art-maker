@@ -176,7 +176,7 @@ function drawVignette(ctx, w, h) {
   ctx.fillRect(0, 0, w, h);
 }
 
-// Caption lettering: auto-fit Anton, with fill / outline / glow / gradient styles.
+// Caption lettering: auto-fit heavy system font, with fill / outline / glow / gradient styles.
 export function drawCaption(ctx, state, w, h) {
   const band = h * 0.20;
   const bandY = h - band;
@@ -198,7 +198,7 @@ export function drawCaption(ctx, state, w, h) {
   if (!text) return;
   const maxW = w * 0.88;
   let size = band * 0.52;
-  const font = (s) => `${s}px Anton, 'Arial Black', sans-serif`;
+  const font = (s) => `900 ${s}px 'Arial Black', 'Helvetica Neue', Arial, sans-serif`;
   ctx.font = font(size);
   while (ctx.measureText(text).width > maxW && size > 14) {
     size -= 2;

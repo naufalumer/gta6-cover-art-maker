@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/gta6-cover-art-01/naufalumer/gta6-cover-art-maker/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 [![reward](https://make.fun/badge/gta6-cover-art-01/naufalumer/gta6-cover-art-maker/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 
-Vice Cover Studio turns your own photos and a caption into GTA 6-style cover art: a multi-panel poster with bold Anton lettering, a Vice City sunset or neon colour grade, and original sun, palm and skyline art drawn in code. Three layouts, per-panel crop, zoom and drag, five lettering styles, three grades, vignette and film grain, and PNG export at 1080×1080, 1080×1350 and 1920×1080. It runs fully offline in the browser — photos never leave your machine.
+Vice Cover Studio turns your own photos and a caption into GTA 6-style cover art: a multi-panel poster with bold heavy system-font lettering, a Vice City sunset or neon colour grade, and original sun, palm and skyline art drawn in code. Three layouts, per-panel crop, zoom and drag, five lettering styles, three grades, vignette and film grain, and PNG export at 1080×1080, 1080×1350 and 1920×1080. It runs fully offline in the browser — photos never leave your machine.
 
 ## Run it
 

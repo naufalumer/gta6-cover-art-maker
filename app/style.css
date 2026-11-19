@@ -1,11 +1,4 @@
-@font-face {
-  font-family: 'Anton';
-  src: url('./fonts/Anton-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
+/* Caption lettering uses a heavy system font stack (no vendored font files). */
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -22,7 +15,8 @@ body {
   background: linear-gradient(90deg, #ff5e7a, #b13a8f 55%, #00c2d8);
 }
 .brand {
-  font-family: Anton, 'Arial Black', sans-serif;
+  font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 900;
   font-size: 30px;
   letter-spacing: 2px;
   color: #fff;
@@ -50,7 +44,8 @@ body {
   padding: 16px;
 }
 .controls h2 {
-  font-family: Anton, 'Arial Black', sans-serif;
+  font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 900;
   font-size: 17px;
   letter-spacing: 1.5px;
   color: #ffb347;
@@ -101,7 +96,8 @@ label input[type="color"] { width: 100%; height: 36px; padding: 2px; background:
   width: 100%;
   margin-top: 12px;
   padding: 14px;
-  font-family: Anton, 'Arial Black', sans-serif;
+  font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 900;
   font-size: 20px;
   letter-spacing: 2px;
   color: #14081f;

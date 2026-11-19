@@ -62,8 +62,8 @@ export async function runShot(shot, query, api) {
   });
 
   if (shot === 'cover') document.body.classList.add('shot-cover');
-  // wait for the Anton font so the caption lettering is the real one
-  try { await document.fonts.load('40px Anton'); await document.fonts.ready; } catch { /* fall back */ }
+  // Caption lettering uses system fonts only, so there is no webfont to wait for.
+  try { await document.fonts.ready; } catch { /* fall back */ }
   drawCover(canvas, state);
   renderPreview();
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
