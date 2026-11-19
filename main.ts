@@ -1,20 +1,22 @@
-// Vice Cover Studio — entrypoint for the gta6-cover-art-01 bounty.
-// This Node 22 program (standard library only) hands the app in: it copies
-// the static app/ folder and the screenshots/ folder beside this file into
-// the output directory and writes dossier.json there, using the vendored
-// make.fun library. The app itself is plain static files — index.html plus
-// ES modules, no build step, no network — that turn photos and a caption
-// into a multi-panel GTA-style poster cover and export it as a PNG.
-// The dossier is the summary the judge reads, so the program must write
-// exactly the bytes buildDossier produces from the copied files.
+// Vice Cover Studio — the hand-in program for gta6-cover-art-01.
+// Node 22, standard library only. It copies the static app/ folder and
+// the screenshots/ folder next to this file into the output directory and
+// writes dossier.json there with the vendored make.fun library. The app
+// itself is plain static files — index.html plus ES modules, no build step,
+// no network — turning photos and a caption into a multi-panel GTA-style
+// poster cover, exported as a PNG. The dossier is the summary the judge
+// reads, so this program must write exactly the bytes buildDossier
+// produces from the copied files.
 //
-// Local run: mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// Try it locally: mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 // (Outside the grader, MAKEFUN_OUTPUT_DIR stands in for /output.)
 import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-app.ts';
 
+// Where the repository sits, and where the hand-in goes: /output in the
+// grader, or MAKEFUN_OUTPUT_DIR when run by hand.
 const repoRoot = fileURLToPath(new URL('.', import.meta.url));
 const destDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
