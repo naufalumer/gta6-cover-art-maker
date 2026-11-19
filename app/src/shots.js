@@ -1,14 +1,31 @@
-// Fixed scenes for screenshots: ?shot=cover shows the exported cover alone,
-// full viewport; ?shot=editor shows the editor with sample photos loaded.
-// Query knobs: photo (boulevard|pier), photo2, caption, sub, layout, grade,
-// size (1080x1080|1080x1350|1920x1080), lettering. window.__shotReady is set
-// once the scene has painted.
+// Fixed scenes for the screenshots: ?shot=cover shows the exported cover
+// alone, filling the viewport; ?shot=editor shows the editor with sample
+// photos loaded. Query knobs: photo (boulevard|pier), photo2, caption,
+// sub, layout, grade, size (1080x1080|1080x1350|1920x1080), lettering.
+// window.__shotReady is set once the scene has painted.
 import { drawCover } from './cover.js';
 
-function setActive(group, value) {
+// Mark the button of one control group (layout, grade or size) as active.
+function markGroupActive(group, value) {
   document.querySelectorAll(`[data-${group}]`).forEach((b) => {
     b.classList.toggle('active', b.dataset[group] === value);
   });
+}
+
+// Per-layout crops, tuned so faces stay in frame: narrow strip panels and
+// short top panels need no zoom and a downward nudge to show the top of a
+// square photo; the hero layout can crop tighter.
+function cropsFor(layout) {
+  if (layout === 'grid') {
+    return [[1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0]];
+  }
+  if (layout === 'strip') {
+    return [[1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0]];
+  }
+  if (layout === 'top') {
+    return [[1.0, 0, 0.85], [1.0, 0, 1.1], [1.0, 0, 1.1]];
+  }
+  return [[1.05, 0, 0], [1.25, 0, -0.06], [1.15, 0, 0]];
 }
 
 export async function runShot(shot, query, api) {
@@ -26,9 +43,9 @@ export async function runShot(shot, query, api) {
   state.caption = caption;
   state.sub = sub;
   state.lettering = lettering;
-  setActive('layout', layout);
-  setActive('grade', grade);
-  setActive('size', size);
+  markGroupActive('layout', layout);
+  markGroupActive('grade', grade);
+  markGroupActive('size', size);
   document.getElementById('caption').value = caption;
   document.getElementById('subCaption').value = sub;
   document.getElementById('lettering').value = lettering;
@@ -39,11 +56,11 @@ export async function runShot(shot, query, api) {
   canvas.height = h;
 
   if (layout === 'grid') {
-    // Vice Grid: nine distinct panel illustrations, one per cell, in grid order.
+    // Vice Grid: nine distinct panel illustrations, one per cell, in order.
     await api.loadGridPanels();
   } else {
-    // Load the sample photos, then place them: hero gets the main photo,
-    // the side panels get the second photo (or the same one again).
+    // Load the sample photos, then place them: the hero panel gets the
+    // main photo, the side panels get the second photo (or the same one).
     const main = await api.loadSample(query.get('photo') || 'pier');
     const secondName = query.get('photo2') || (query.get('photo') === 'pier' ? 'boulevard' : 'pier');
     const second = await api.loadSample(secondName);
@@ -51,24 +68,15 @@ export async function runShot(shot, query, api) {
     state.panels[1].photo = second;
     state.panels[2].photo = query.get('same') ? main : second;
   }
-  // Crops tuned per layout so faces stay in frame: narrow strip panels and
-  // short strip panels need no zoom and a downward nudge to show the top
-  // of a square photo; the hero layout can crop tighter.
-  const crops = {
-    grid: [[1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0]],
-    strip: [[1.0, 0, 0], [1.0, 0, 0], [1.0, 0, 0]],
-    top: [[1.0, 0, 0.85], [1.0, 0, 1.1], [1.0, 0, 1.1]],
-    hero: [[1.05, 0, 0], [1.25, 0, -0.06], [1.15, 0, 0]],
-  };
-  const crop = crops[layout] || crops.hero;
-  crop.forEach(([zoom, ox, oy], i) => {
+  cropsFor(layout).forEach(([zoom, ox, oy], i) => {
     state.panels[i].zoom = zoom;
     state.panels[i].ox = ox;
     state.panels[i].oy = oy;
   });
 
   if (shot === 'cover') document.body.classList.add('shot-cover');
-  // Wait for Pricedown (the GTA display font) so the caption and VI logo render in it.
+  // Wait for Pricedown (the GTA display font) so the caption and the VI
+  // logo render in it, not in the fallback stack.
   try { await document.fonts.load('40px Pricedown'); } catch { /* fall back to the system stack */ }
   try { await document.fonts.ready; } catch { /* fall back */ }
   drawCover(canvas, state);
