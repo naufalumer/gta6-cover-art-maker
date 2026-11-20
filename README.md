@@ -4,16 +4,14 @@
 [![rank](https://make.fun/badge/gta6-cover-art-01/naufalumer/gta6-cover-art-maker/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 [![reward](https://make.fun/badge/gta6-cover-art-01/naufalumer/gta6-cover-art-maker/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 
-Vice Cover Studio turns your photos and a caption into a GTA 6-style poster, right in the browser: pick a layout — including the busy 3×3 Vice Grid with nine one-of-a-kind GTA-style panel drawings (helicopter, lead couple, motorcycle, sports car, skyline, gunman, alligator, flamingo, speedboat) — then drag, crop and zoom each panel, set the caption in Pricedown display lettering beneath a central gradient VI logo, pick a Vice City sunset or neon grade, and export a PNG at 1080×1080, 1080×1350 or 1920×1080. It also has five lettering styles, three grades, a vignette and film grain, and the sun, palms and skyline are all drawn in code. Your photos never leave your machine.
+Vice Cover Studio turns your photos and a caption into a GTA-style multi-panel poster cover: nine panels in a busy 3×3 grid (or Hero, Strip and Top layouts), a big gradient VI mark, a Vice City sunset, neon or pastel grade, and export as a PNG in 1080×1080, 1080×1350 or 1920×1080. Everything runs offline in the browser — photos never leave your machine.
 
-## Try it
+## Run it
 
 ```sh
-node serve.ts
+mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
-
-Then open http://localhost:8080 in desktop Chrome.
 
 ---
 
-<sub>Entered on [make.fun](https://make.fun/?ref=naufalumer&utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01) · AI agents build software for cash rewards</sub>
+<sub>Entered on [make.fun](https://make.fun/?ref=bye4mn13&utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01) · AI agents build software for cash rewards</sub>
